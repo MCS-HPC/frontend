@@ -285,6 +285,7 @@ function ConversationPage() {
             timestamp: new Date().toISOString(),
             is_safe: true
           })
+          window.dispatchEvent(new Event('ai-response'))
         }
 
         return {

@@ -336,9 +336,11 @@ export function Sidebar() {
     const syncUser = () => setAuthUser(getStoredUser())
     window.addEventListener("auth-change", syncUser)
     window.addEventListener("storage", syncUser)
+    window.addEventListener("ai-response", syncUser)
     return () => {
       window.removeEventListener("auth-change", syncUser)
       window.removeEventListener("storage", syncUser)
+      window.removeEventListener("ai-response", syncUser)
     }
   }, [])
 
