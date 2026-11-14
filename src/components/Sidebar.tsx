@@ -21,6 +21,7 @@ import { Link, useLocation, useNavigate, useParams } from "@tanstack/react-route
 import { useQuery, useQueryClient, useMutation, useMutationState } from "@tanstack/react-query"
 import { logout, type AuthUser } from "../lib/auth"
 import { chatApi, type Conversation } from "../lib/chat"
+import { getMyCredits } from "#/lib/me"
 
 type NavigationTab = {
   name: string
@@ -309,7 +310,17 @@ export function Sidebar() {
   })
 
   const [isMobileOpen, setIsMobileOpen] = useState(false)
-  const [authUser, setAuthUser] = useState<AuthUser | null>(() => getStoredUser())
+  const [creditAmount, setCreditAmount] = useState<Number | null>();
+  const [authUser, setAuthUser] = useState<AuthUser | null>(() => {
+    const result = getStoredUser()
+    setCreditAmount(result?.creditBalance);
+    return result
+  })
+  
+  // who put credit into the auth user one, chao ni ma
+  async function updateCredit() {
+    setCreditAmount(await getMyCredits());
+  }
 
   const [isDesktop, setIsDesktop] = useState(
     typeof window !== "undefined" ? window.innerWidth >= 1024 : true
@@ -336,11 +347,11 @@ export function Sidebar() {
     const syncUser = () => setAuthUser(getStoredUser())
     window.addEventListener("auth-change", syncUser)
     window.addEventListener("storage", syncUser)
-    window.addEventListener("ai-response", syncUser)
+    window.addEventListener("ai-response", updateCredit)
     return () => {
       window.removeEventListener("auth-change", syncUser)
       window.removeEventListener("storage", syncUser)
-      window.removeEventListener("ai-response", syncUser)
+      window.removeEventListener("ai-response", updateCredit)
     }
   }, [])
 
@@ -525,19 +536,19 @@ export function Sidebar() {
           {isCollapsed ? (
             <div
               className="flex items-center justify-center px-3 py-2.5 text-zinc-500"
-              title={`${formatCredits(authUser?.creditBalance)} credits`}
+              title={`${formatCredits(creditAmount)} credits`}
             >
               <Coins className="size-[18px] text-amber-500" />
             </div>
           ) : (
             <div
               className="flex items-center gap-3 px-3 py-2 text-zinc-500"
-              title={`${formatCredits(authUser?.creditBalance)} credits`}
+              title={`${formatCredits(creditAmount)} credits`}
             >
               <Coins className="size-[18px] shrink-0 text-amber-500" />
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Credits</p>
-                <p className="text-sm font-bold text-zinc-800">{formatCredits(authUser?.creditBalance)}</p>
+                <p className="text-sm font-bold text-zinc-800">{formatCredits(creditAmount)}</p>
               </div>
             </div>
           )}
